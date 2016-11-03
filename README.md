@@ -17,3 +17,6 @@ Normalized_estimate_fundamental_matrix implements this.
 6. proj3_part3.m calls ransac_fundamental_matrix which in turn uses Normalized_estimate_fundamental_matrix. There is no need for the user to modify the function call here.
 
 7. The threshold remains same for all the images.
+
+The results and visualizations are presented in a html page found here
+http://htmlpreview.github.io/?https://github.com/anishagartia/fundamental-matrix-estimation/blob/master/html/index.html
