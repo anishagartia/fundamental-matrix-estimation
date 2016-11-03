@@ -1,0 +1,639 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 1160px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+table td img {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+    <H1 style = "text-transform: capitalize" ><span style="color: #DE3737">Anisha Gartia <br> GTID: 903136557</span></H1>
+</div>
+</div>
+<div class="container">
+
+<h2> Project 3: Camera Calibration and Fundamental Matrix Estimation with RANSAC</h2>
+
+
+<p> Identification and matching of two images is done by identifying corner points, and matching the features around these corner points. Algorithms like SIFT depend on gradient of image around corner points, and are sensitive to extrinsic parameters such as camera calibration. Thus, if the camera is rotated, or the same object is captured from a different angle as shown in figure 1, SIFT gives very poor results as we saw in project 2.
+</p>
+
+    <div align="center" style="float: right; padding: 20px">
+        <img src="Woodruff.png" width="55%"/>
+        <p style="font-size: 16px">Figure 1: Images of the same building taken at different camera orientations.</p>
+    </div>
+
+    <p> Thus, in this project we take into account camera calibration and extrinsic properties such as optical centre, aspect ratio, and skew between x and y axis. The project is devided into three basic components.
+    </p>
+
+    <ol>
+        <li>Estimation of Camera Projection Matrix.</li>
+        <li>Estimation of Fundamental Matrix.</li>
+        <li>Using RANSAC to find Best Estimate of Fundamental Matrix.</li>
+    </ol>
+
+
+    <p>
+        EXTRA
+
+        We first estimate the projection matrix for transforming from real world 3D coordinates to 2D image coordinates by using linear regression. We also estimate the fundamental matrix for transformation from image A to image B taken using different extrinsic properties such as camera roattion etc. Here we use RANSAC to randomly sample points to
+    </p>
+
+
+<div  style="clear:both">
+<h2>I. Estimation of Camera Projection Matrix</h2>
+
+<p> The projection matirix is used to convert from 3D read world coordintes to 2D image coordinates. The structure of this projection matrix is shown in figure 2. We use linear regression to estimate the elements of the 3x4 matrix generated as a product of intrinsic and extrinsic properties of the image.  </p>
+
+    <div align = "center">
+        <img src="ProjectionMatrix.jpg" width="40%"/>
+        <p style="font-size: 16px">Figure 2: Projection matrix.</p>
+    </div>
+
+    <p>In figure 3 we show the actual 2D points and the points obtained from applying the projection matrix on corresponding 3D points. We see that the points overlap, showing that the projection matrix gives a good projection from 3D world coordinates to 2D image coordinates.
+    </p>
+
+    <div align = "center">
+        <img src="projMat_plot.png" width="45%"/>
+        <p style="font-size: 16px">Figure 3: Plot of actual and estimated image coordinates using projection matrix.</p>
+    </div>
+
+    <p> Additionally, we also estimate the camera centre (optical centre) from this projection matrix. This done using equations shown below in equation 1 and 2. In figure 4, we can see the camera coordinate in the 3D plot. This gives us a visual description of where the camera is placed with respect to the corner points of the view.
+    </p>
+
+    <div align = "center">
+        <img src="cameraCentre.jpg" width="25%"/>
+        <p style="font-size: 16px">Equation 1: Calculating Camera centre from projection matrix.</p>
+    </div>
+
+    <div align = "center">
+        <img src="camCentre_plot.png" width="45%"/>
+        <p style="font-size: 16px">Figure 4: Visual description of Camera centre with respect to interest points in 3D coordinates. <br>'+' shows the camera centre, 'o' are the interest points. </p>
+    </div>
+
+
+    <p> The above plots have been obtained by using normalized images. Normalized images are mean centred, and have unit variance. Normalized image coordinates have a maximum of unit distance between each other. As a result, the projection matrix gives image coordinates that are closer to the ground truth normalized coordinates. We us Residue as a measure of performance. Residue is calculated as the mean square distance between the projected points obtained using our projection matrix, and the ground truth 2D points. For both the normalized and non-normalized images, we obtain the following residues. <br> <br> In the case of normalized image coordinates, residue = 0.0445<br> In case of non-normalized image coordinates, residue = 15.6217.<br> <br>  As we can see, normalization reduces the mean square error of obtained results by a significant factor. In Figure 5, we see the projected points using non-normalized image coordinates, and in fogure 6, we see the camera centre using non-normalized image coordinates. </p>
+
+    <div align = "center">
+        <img src="part1_norm_proj.png" width="45%"/>
+        <p style="font-size: 16px">Figure 5: Plot of actual and estimated image non-normalized coordinates using projection matrix. </p>
+    </div>
+
+    <div align = "center">
+        <img src="part1_norm_camcentre.png" width="45%"/>
+        <p style="font-size: 16px">Figure 6: Visual description of Camera centre with respect to interest points in non-normalized 3D coordinates. <br>'+' shows the camera centre, 'o' are the interest points. </p>
+    </div>
+
+    <p style="font-size: 30px"><b>Results:</b><br></p>
+        <p>1. Normalized image coordinates: <br>
+        Projection Matrix = </p>
+        <div align = "left">
+            <img src="proj_mat_Norm_result.png" width="25%"/>
+        </div>
+        <p>Camera Centre = [-1.5126, -2.3517, 0.2827] <br>
+        The total residual is: 0.0445 <br> <br>
+
+        2. Non-Normalized image coordinates:<br>
+        Projection Matrix =</p>
+        <div align = "left">
+            <img src="proj_mat_noNorm_result.png" width="25%"/>
+        </div>
+        <p>Camera Centre = [303.0967, 307.1842, 30.4223] <br>
+        The total residual is: 15.6217 <br><br></p>
+
+</div>
+
+<div  style="clear:both">
+    <h2>II. Estimation of Fundamental Matrix</h2>
+
+    <p>
+        When we have two images with different intrinsic and extrinsic properties, the same point or corner on both the images will have different features. Thus basic SIFT will result is large number of mismatches. THis can be seen in figure 7.
+    </p>
+
+    <div align = "center">
+        <img src="Gaudi_sift2.png" width="55%"/>
+        <p style="font-size: 16px">Figure 7: SIFT matches for two images taken with different projection matrices. SIFT gives us poor results for this. </p>
+    </div>
+
+    <p>
+        When we have to match two images with different projection matrices, we find its fundamental matrix. The Fundamental martix is constructed using translation and rotation matrix components of camera's extrinsic parameters. The fundamental matrix is deduced as shown in equation 2 below.
+    </p>
+
+    <div align = "center">
+        <img src="FMatrix.png" width="25%"/>
+        <p style="font-size: 16px">Equation 2: Fundamental Matrix equation. </p>
+    </div>
+
+    <p>
+        Fundamental matrix uses the concept of Epipolar Geometry which says that a point in an image can be present only in the corresponding image's epipolar line. Epipolar lines are the lines drawn from a point in 3D world coordinates to the respective image's optical centers. Thus, we estimate the Fundamental matrix as a set of homogeneous linear equations using the 8-point algorithm as shown in equations 3.
+    </p>
+
+    <div align = "center">
+        <img src="FMatrix_2.jpg" width="45%"/>
+        <p style="font-size: 16px">Equation 3: 8-point algorithm </p>
+    </div>
+
+    <p>
+        Here, we have obtained the fundamental matrix using two methods.
+    </p>
+
+    <ol>
+        <li>Without normalized interest points.</li>
+        <li>With Normalized interest points. </li>
+    </ol>
+
+    <h3> 1. Fundamental Matrix estimation WITHOUT normalization:</h3>
+
+    <p>
+        In this method, we first find interest points, and their SIFT features for both the images. This can be done using vlfeat package for MATLAB. Once we obtain the corresponding matches between both the images, we use these points without any processing with 8-point algorithm. Figure 8 shows the SIFT points, and the epipolar lines using the estimated Fundamental Matrix. We see that the lines here do not exactly pass through the corner points.
+    </p>
+
+    <table>
+        <tr><td>
+            <div align = "center">
+                <img src="part2_noNorm_noNoise1.png" width="100%"/>
+                <p style="font-size: 16px">Figure 8(a): Epipolar lines of image 1 without using normalization.</p>
+            </div>
+        </td>
+        <td>
+            <div align = "center">
+                <img src="part2_noNorm_noNoise2.png" width="100%"/>
+                <p style="font-size: 16px">Figure 8(b): Epipolar lines of image 2 without using normalization.</p>
+            </div>
+        </td>
+    </tr>
+
+    </table>
+
+
+
+
+    <h3> 2. Fundamental Matrix estimation WITH normalization:</h3>
+
+    <p>
+        Normalization of interest points involves mean centering it, and making the variance of the points equal to 1. The benefit of normalization is that all the points are within unit distance, and do not have any offset. Thus, any processing done on the points now will effect all the points equally. We normalize the points by mean centering them, and scaling them such that the euclidean distance between them is limited to 1. This is done by constructing a transformation matrix using the mean and variance of the points as shown below in Equation 4.
+    </p>
+
+    <div align = "center">
+        <img src="norm_matrix.jpg" width="35%"/>
+        <p style="font-size: 16px">Equation 4: Normalization of coordinates</p>
+    </div>
+
+
+    <p>
+        After Normalization, the 8-point algorithm is performed as usual on these points, giving us the Fundamental matrix. As this F matrix is for the normalized points, we must convert it back for original points by multiplying the transformation matrix constructed above. The results of the using the same image to construct fundamental matrix and draw the resultant epipolar lines is shown below in Figure 9.
+    </p>
+
+    <table>
+        <tr><td>
+            <div align = "center">
+                <img src="part2_norm_noNoise1.png" width="100%"/>
+                <p style="font-size: 16px">Figure 9(a): Epipolar lines of image 1 using normalization.</p>
+            </div>
+        </td>
+            <td>
+                <div align = "center">
+                    <img src="part2_norm_noNoise2.png" width="100%"/>
+                    <p style="font-size: 16px">Figure 9(b): Epipolar lines of image 2 using normalization.</p>
+                </div>
+            </td>
+        </tr>
+
+    </table>
+
+<h3> Comparison in performance of normalization and non-normalization:</h3>
+    <p>
+        As we can see in Figures 8 and 9, the interest points are same for both the figures, but we see that the epipolar lines constructed are slightly off centre and do not exactly pass the interest points in the case where we dont use normalization. This can be seen visually by zooming in on specific points of the images in figures 8 and 9 as shown below in figure 10.
+    </p>
+
+    <table>
+        <tr><td>
+            <div align = "center">
+                <img src="part2_noNorm_zoom.png" width="100%"/>
+            </div>
+        </td>
+
+        <td>
+            <div align = "center">
+                <img src="part2_Norm_zoom.png" width="100%"/>
+                <p></p>
+            </div>
+        </td></tr>
+    </table>
+    <p style="font-size: 16px">Figure 10: Zooming in on specific interest points where epipolar lines can be seen to be off. </p>
+
+    <p>
+        To Clearly observe the difference between normalized and non-normalized, we add some random noise to both the image and then estimate the fundamental matrix. The results of Noisy interest points without normalization is shown in figure 11, and with normalization is shown in figure 12.
+    </p>
+
+    <table>
+        <tr><td>
+            <div align = "center">
+                <img src="part2_noNorm_noise1.png" width="90%"/>
+                <p style="font-size: 16px">Figure 11(a): Epipolar lines of image 1 with random noise without using normalization.</p>
+            </div>
+        </td>
+            <td>
+                <div align = "center">
+                    <img src="part2_noNorm_noise2.png" width="90%"/>
+                    <p style="font-size: 16px">Figure 11(b): Epipolar lines of image 2 with random noise without using normalization.</p>
+                </div>
+            </td>
+        </tr>
+        <tr></tr>
+        <tr><td>
+            <div align = "center">
+                <img src="part2_norm_noise1.png" width="90%"/>
+                <p style="font-size: 16px">Figure 12(a): Epipolar lines of image 1 with random noise and using normalization.</p>
+            </div>
+        </td>
+            <td>
+                <div align = "center">
+                    <img src="part2_norm_noise2.png" width="90%"/>
+                    <p style="font-size: 16px">Figure 12(b): Epipolar lines of image 2 with random noise and using normalization.</p>
+                </div>
+            </td>
+        </tr>
+
+
+    <tr><td>
+        <div align = "center">
+            <img src="part2_noNorm_noise_zoom1.png" width=40%"/>
+            <p style="font-size: 16px">Figure 13(a): Zoomed part of image with Noise and No normalization.</p>
+        </div>
+    </td>
+
+        <td>
+            <div align = "center">
+                <img src="part2_norm_noise_zoom2.png" width=40%"/>
+                <p style="font-size: 16px">Figure 13(b): Zoomed part of Image with Noise and Normalization.</p>
+            </div>
+        </td>
+    </tr>
+    </table>
+
+    <p>
+        Here, we can clearly see that in the case without normalization (figure 11), many lines do not pass the points. Using normalization on the other hand, all the lines pass the points accurately. Zooming in to observe more clearly, we see figure 13 shows the difference between normalization and non-normalization of interest points.
+    </p>
+
+
+    <p style="font-size: 30px"><b>Result in a Table:</b><br></p>
+    <p>1. Without Normalization:<br>
+        1.a Without Random Noise</p>
+        <table>
+            <tr><td>
+                <div align = "center">
+                    <img src="p2res_1.png" width="100%"/>
+    <p style="font-size: 16px">Figure 14(a): Epipolar lines of image 1 without normalization, without noise</p>
+</div>
+    </td>
+    <td>
+        <div align = "center">
+            <img src="p2res_2.png" width="100%"/>
+            <p style="font-size: 16px">Figure 14(b): Epipolar lines of image 2 without normalization, without noise</p>
+        </div>
+    </td>
+    </tr>
+
+    </table>
+
+    <p>1.b. With Random Noise</p>
+    <table>
+        <tr><td>
+            <div align = "center">
+                <img src="p2res3.png" width="100%"/>
+                <p style="font-size: 16px">Figure 15(a): Epipolar lines of image 1 without normalization, with noise.</p>
+            </div>
+        </td>
+            <td>
+                <div align = "center">
+                    <img src="p2res4.png" width="100%"/>
+                    <p style="font-size: 16px">Figure 15(b): Epipolar lines of image 2 without normalization, with noise.</p>
+                </div>
+            </td>
+        </tr>
+
+    </table>
+
+     <p>2. With Normalization<br>
+        2.a Without Random Noise</p>
+    <table>
+        <tr><td>
+            <div align = "center">
+                <img src="p2res5.png" width="100%"/>
+                <p style="font-size: 16px">Figure 16(a): Epipolar lines of image 1 with normalization, without noise.</p>
+            </div>
+        </td>
+            <td>
+                <div align = "center">
+                    <img src="p2res6.png" width="100%"/>
+                    <p style="font-size: 16px">Figure 16(b): Epipolar lines of image 2 with normalization, without noise.</p>
+                </div>
+            </td>
+        </tr>
+
+    </table>
+
+        <p>2.b With Random Noise</p>
+    <table>
+        <tr><td>
+            <div align = "center">
+                <img src="p2res7.png" width="100%"/>
+                <p style="font-size: 16px">Figure 17(a): Epipolar lines of image 1 with normalization, with noise.</p>
+            </div>
+        </td>
+            <td>
+                <div align = "center">
+                    <img src="p2res8.png" width="100%"/>
+                    <p style="font-size: 16px">Figure 17(b): Epipolar lines of image 2 with normalization, with noise.</p>
+                </div>
+            </td>
+        </tr>
+
+    </table>
+
+</div>
+
+<div  style="clear:both">
+<h2>III. Using RANSAC to find Best Estimate of Fundamental Matrix.</h2>
+    <p>
+        For estimating Fundamental Matrix, we must have at least 8 sets of matching points between both the images. The matrix F has 9 independent values in it, but since we're dealing with homogeneous coordinate system, we're only interested upto a certain scale. Which means that there are effectively 8 independent values in F.Thus we need only 8 points to estimate fundamental matrix. SIFT will give us many more than 8 matches. Thus we use RANSAC to randomly pick 8 points, and construct the fundamental matrix using them. A good Fundamental matrix is one which will adhere to equation 5. Although we wont get exactly 0, we can have a soft bound by thresholding the values obtained, and computing the number of inliers. This is done using equation 6. Using multiple iterations, the best F matrix is one that gives us maximum number of inliers. Threshold value is a fre parameter here, and is tuned by checking the result.
+    </p>
+
+    <div align = "center">
+        <img src="threshold.png" width="13%"/>
+        <p style="font-size: 14px">Equation 5: Equation for Fundamental Matrix. </p>
+    </div>
+
+    <div align = "center">
+        <img src="inlier.png" width="15%"/>
+        <p style="font-size: 14px">Equation 6: Equation for distance metric.</p>
+    </div>
+
+    <p>
+        Once we have out best fundamental matrix, we pick 30 matches with lowest values of the distance metric.
+    </p>
+
+    <p style="font-size: 30px"><b>Result in a Table:</b><br></p>
+
+    <p>1. Example of poor fundamental matrix:</p>
+
+    <p>Fundamental Matrix =</p>
+    <img src="bad1_4.png" width="25%"/>
+    <p>Number of inliers = 36<br>
+        Number of iterations of RANSAC = 1 <br>
+        Threshold = 0.05
+    </p>
+    <table border=1>
+    <tr><td>
+    <img src="bad1_1.png" width="48%"/>
+    <img src="bad1_2.png"  width="48%"/>
+    </td></tr>
+    </table>
+
+    <div align = "center">
+        <img src="bad1_3.png" width="90%"/>
+    </div>
+
+    <p>2. Example of poor fundamental matrix: </p>
+    <p>Fundamental Matrix =</p>
+    <img src="bad2_4.png" width="25%"/>
+    <p>Number of inliers = 29 <br>
+        Number of iterations of RANSAC = 5 <br>
+        Threshold = 0.05</p>
+    <table border=1>
+        <tr><td>
+            <img src="bad2_1.png" width="44%"/>
+            <img src="bad2_2.png"  width="44%"/>
+        </td></tr>
+    </table>
+
+    <div align = "center">
+        <img src="bad2_3.png" width="90%"/>
+    </div>
+
+
+    <p>3. Example of poor fundamental matrix: </p>
+    <p>Fundamental Matrix =</p>
+    <img src="bad3_4.png" width="25%"/>
+    <p>Number of inliers = 73 <br>
+        Number of iterations of RANSAC = 20 <br>
+        Threshold = 0.05</p>
+    <table border=1>
+        <tr><td>
+            <img src="bad3_1.png" width="49%"/>
+            <img src="bad3_2.png"  width="49%"/>
+        </td></tr>
+    </table>
+
+    <div align = "center">
+        <img src="bad3_3.png" width="90%"/>
+    </div>
+
+    <p>4. Example of good fundamental matrix: </p>
+    <p>Fundamental Matrix =</p>
+    <img src="good1_4.png" width="25%"/>
+    <p>Number of inliers = 672 <br>
+        Number of iterations of RANSAC = 1000 <br>
+        Threshold = 0.05</p>
+    <table border=1>
+        <tr><td>
+            <img src="good1_1.png" width="44%"/>
+            <img src="good1_2.png"  width="44%"/>
+        </td></tr>
+    </table>
+
+    <div align = "center">
+        <img src="good1_3.png" width="90%"/>
+    </div>
+
+    <p>5. Example of good fundamental matrix: </p>
+    <p>Fundamental Matrix =</p>
+    <img src="good2_4.png" width="25%"/>
+    <p>Number of inliers = 689  <br>
+        Number of iterations of RANSAC = 1000 <br>
+        Threshold = 0.05</p>
+    <table border=1>
+        <tr><td>
+            <img src="good2_1.png" width="44%"/>
+            <img src="good2_2.png"  width="44%"/>
+        </td></tr>
+    </table>
+
+    <div align = "center">
+        <img src="good2_3.png" width="90%"/>
+    </div>
+
+    <p>6. Example of good fundamental matrix: </p>
+    <p>Fundamental Matrix =</p>
+    <img src="good3_4.png" width="25%"/>
+    <p>Number of inliers = 522  <br>
+        Number of iterations of RANSAC = 1000 <br>
+        Threshold = 0.05</p>
+    <table border=1>
+        <tr><td>
+            <img src="good3_1.png" width="48%"/>
+            <img src="good3_2.png"  width="48%"/>
+        </td></tr>
+    </table>
+
+    <div align = "center">
+        <img src="good3_3.png" width="90%"/>
+    </div>
+
+
+    <p>6. Example of good fundamental matrix: </p>
+    <p>Fundamental Matrix =</p>
+    <img src="good4_4.png" width="25%"/>
+    <p>Number of inliers = 322  <br>
+        Number of iterations of RANSAC = 1000 <br>
+        Threshold = 0.05</p>
+    <table border=1>
+        <tr><td>
+            <img src="good4_1.png" width="44%"/>
+            <img src="good4_2.png"  width="44%"/>
+        </td></tr>
+    </table>
+
+    <div align = "center">
+        <img src="good4_3.png" width="90%"/>
+    </div>
+
+ <p>
+     We can see from the above results that with greater number of RANSAC iterations, we get Fundamental Matrices with more number of inliers. Thus RANSAC with normalzation gives us good results where the epipolar lines pass the interest points.
+ </p>
+
+</div>
+
+</div>
+</body>
+</html>
