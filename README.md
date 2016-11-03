@@ -18,5 +18,5 @@ Normalized_estimate_fundamental_matrix implements this.
 
 7. The threshold remains same for all the images.
 
-The results and visualizations are presented in a html page found here
+The results and visualizations are presented in a html page found here  
 http://htmlpreview.github.io/?https://github.com/anishagartia/fundamental-matrix-estimation/blob/master/html/index.html
